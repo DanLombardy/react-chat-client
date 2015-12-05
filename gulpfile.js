@@ -65,15 +65,21 @@ gulp.task('static:dev', function() {
   .pipe(gulp.dest('build/'));
 });
 
-gulp.task('jsx', function(){
-  return gulp.src('app/js/*.jsx')
-  .pipe(babel({"presets": ["react"]}))
-  .pipe(gulp.dest('app/js/'))
-})
-
 gulp.task('webpack:dev', function() {
-  gulp.src('app/js/app.js')
+  return gulp.src('app/js/app.js')
   .pipe(webpack({
+    module: {
+      loaders: [
+        {
+          test: /\.jsx?$/,
+          exclude: /node_modules/,
+          loader: 'babel',
+          query: {
+            presets: ['react', 'es2015']
+          }
+        }
+      ]
+    },
     output: {
       filename: 'bundle.js'
     }
@@ -81,11 +87,10 @@ gulp.task('webpack:dev', function() {
   .pipe(gulp.dest('build/'));
 });
 
-gulp.task('build:dev', ['webpack:dev', 'static:dev']);
+gulp.task('build', ['webpack:dev', 'static:dev']);
 
 gulp.task('watch', function() {
-  gulp.watch([paths.frontend.js, paths.frontend.html], ['jshint:frontend', 'build:dev']);
+  gulp.watch([paths.frontend.js, paths.frontend.html], ['jshint:frontend', 'build']);
 });
 
-
-gulp.task('default', ['jshint:frontend', 'jshint:backend', 'build:dev']);
+gulp.task('default', ['jshint:frontend', 'build']);
