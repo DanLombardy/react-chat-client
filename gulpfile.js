@@ -7,6 +7,7 @@ var notify = require('gulp-notify');
 var minifycss = require('gulp-minify-css');
 var rename = require('gulp-rename');
 var livereload = require('gulp-livereload');
+var babel = require('gulp-babel');
 
 var paths = {
   frontend: {
@@ -64,6 +65,12 @@ gulp.task('static:dev', function() {
   .pipe(gulp.dest('build/'));
 });
 
+gulp.task('jsx', function(){
+  return gulp.src('app/js/*.jsx')
+  .pipe(babel({"presets": ["react"]}))
+  .pipe(gulp.dest('app/js/'))
+})
+
 gulp.task('webpack:dev', function() {
   gulp.src('app/js/app.js')
   .pipe(webpack({
@@ -79,5 +86,6 @@ gulp.task('build:dev', ['webpack:dev', 'static:dev']);
 gulp.task('watch', function() {
   gulp.watch([paths.frontend.js, paths.frontend.html], ['jshint:frontend', 'build:dev']);
 });
+
 
 gulp.task('default', ['jshint:frontend', 'jshint:backend', 'build:dev']);
