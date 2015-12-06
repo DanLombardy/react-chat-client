@@ -51,8 +51,9 @@
 
 	var React = __webpack_require__(1);
 	var ReactDOM = __webpack_require__(158);
+	var MessageForm = __webpack_require__(159);
 
-	// set window.React for integration with React devtools
+	// set window.React for integration with React Chrome devtools
 	if (typeof window !== 'undefined') {
 		window.React = React;
 	}
@@ -124,23 +125,6 @@
 					})
 				),
 				React.createElement(MessageForm, { submit: this.postIt, ref: 'theForm' })
-			);
-		}
-	});
-
-	var MessageForm = React.createClass({
-		displayName: 'MessageForm',
-
-		render: function render() {
-			return React.createElement(
-				'form',
-				{ onSubmit: this.props.submit },
-				React.createElement('input', { type: 'text', size: '40', placeholder: 'Type your message here' }),
-				React.createElement(
-					'button',
-					null,
-					'Post it!'
-				)
 			);
 		}
 	});
@@ -19734,6 +19718,31 @@
 
 	module.exports = __webpack_require__(3);
 
+
+/***/ },
+/* 159 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var React = __webpack_require__(1);
+
+	module.exports = React.createClass({
+		displayName: "exports",
+
+		render: function render() {
+			return React.createElement(
+				"form",
+				{ onSubmit: this.props.submit },
+				React.createElement("input", { type: "text", size: "40", placeholder: "Type your message here" }),
+				React.createElement(
+					"button",
+					null,
+					"Post it!"
+				)
+			);
+		}
+	});
 
 /***/ }
 /******/ ]);
