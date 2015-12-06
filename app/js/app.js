@@ -3,6 +3,7 @@ var socket = io();
 
 var React = require('react');
 var ReactDOM = require('react-dom');
+var MessageForm = require(__dirname + '/components/msgForm.js');
 
 // set window.React for integration with React Chrome devtools
 if (typeof window !== 'undefined') {
@@ -70,16 +71,7 @@ var MessageList = React.createClass({
 	}
 });
 
-var MessageForm = React.createClass({
-	render: function() {
-		return (
-			<form onSubmit={this.props.submit}>
-				<input type="text" size="40" placeholder="Type your message here" />
-				<button>Post it!</button>
-			</form>
-		);
-	}
-});
+
 
 // mount to the messages div
 ReactDOM.render(<MessageList />, document.getElementById('messages'));
