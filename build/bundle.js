@@ -52,6 +52,7 @@
 	var React = __webpack_require__(1);
 	var ReactDOM = __webpack_require__(158);
 	var MessageForm = __webpack_require__(159);
+	var TypingIndicator = __webpack_require__(160);
 
 	// set window.React for integration with React Chrome devtools
 	if (typeof window !== 'undefined') {
@@ -67,7 +68,8 @@
 				messages: [{
 					timeStamp: Date.now(),
 					text: "Welcome to the test chat app!"
-				}]
+				}],
+				showTypingIndicator: false
 			};
 		},
 		componentDidMount: function componentDidMount() {
@@ -77,6 +79,9 @@
 		onMessageAdded: function onMessageAdded(message) {
 			// update the array (setState re-renders the component)
 			this.setState({ messages: this.state.messages.concat(message) });
+		},
+		onInputChange: function onInputChange() {
+			this.setState({ showTypingIndicator: true });
 		},
 		postIt: function postIt(e) {
 			// prevent form submission which reloads the page
@@ -101,6 +106,9 @@
 			// clear the input
 			input.value = '';
 
+			// clear the indicator
+			this.setState({ showTypingIndicator: false });
+
 			// emit to server so other clients can be updated
 			socket.emit('messageAdded', message);
 		},
@@ -124,7 +132,8 @@
 						);
 					})
 				),
-				React.createElement(MessageForm, { submit: this.postIt, ref: 'theForm' })
+				React.createElement(MessageForm, { submit: this.postIt, onInputChange: this.onInputChange, ref: 'theForm' }),
+				this.state.showTypingIndicator ? React.createElement(TypingIndicator, null) : null
 			);
 		}
 	});
@@ -19730,11 +19739,14 @@
 	module.exports = React.createClass({
 		displayName: "exports",
 
+		handleChange: function handleChange() {
+			this.props.onInputChange();
+		},
 		render: function render() {
 			return React.createElement(
 				"form",
 				{ onSubmit: this.props.submit },
-				React.createElement("input", { type: "text", size: "40", placeholder: "Type your message here" }),
+				React.createElement("input", { type: "text", size: "40", placeholder: "Type your message here", onChange: this.handleChange }),
 				React.createElement(
 					"button",
 					null,
@@ -19742,6 +19754,26 @@
 				)
 			);
 		}
+	});
+
+/***/ },
+/* 160 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var React = __webpack_require__(1);
+
+	module.exports = React.createClass({
+	  displayName: 'exports',
+
+	  render: function render() {
+	    return React.createElement(
+	      'p',
+	      null,
+	      'Someone is typing'
+	    );
+	  }
 	});
 
 /***/ }
