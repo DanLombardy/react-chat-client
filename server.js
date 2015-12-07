@@ -10,26 +10,25 @@ app.use('/node_modules', express.static(__dirname + '/node_modules'));
 io.on('connection', function(socket) {
   var socketUsername;
 
-  socket.on('login', function(data) {
+  socket.on(enums.LOGIN, function(data) {
     socketUsername = data.username;
-    io.emit('message', data);
+    io.emit(enums.MESSAGE, data);
   });
 
-  socket.on('message', function(message) {
-    io.emit('message', {
+  socket.on(enums.MESSAGE, function(message) {
+    io.emit(enums.MESSAGE, {
       sender: socketUsername,
       message: message
     });
   });
 
-  socket.on('disconnect', function() {
-    io.emit('disconnect', socketUsername);
+  socket.on(enums.DISCONNECT, function() {
+    io.emit(enums.DISCONNECT, socketUsername);
   });
 
-  socket.on('logout', function(data) {
-    io.emit('message', data);
+  socket.on(enums.LOGOUT, function(data) {
+    io.emit(enums.MESSAGE, data);
   });
-
 });
 
 server.listen(3000, function() {

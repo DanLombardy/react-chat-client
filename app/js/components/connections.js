@@ -2,6 +2,8 @@ var socket = io();
 var React = require('react');
 var ReactDOM = require('react-dom');
 
+var enums = require("./../../enums");
+
 var UserList = require('./userList');
 var Modal = require('./modal');
 
@@ -13,7 +15,7 @@ module.exports = React.createClass({
   },
 
   componentDidMount: function() {
-    socket.on('disconnect', function(username) {
+    socket.on(enums.DISCONNECT, function(username) {
       this.removeUser(username);
     }.bind(this));
   },
@@ -31,7 +33,7 @@ module.exports = React.createClass({
     this.props.users.push(username);
     this.props.onUsersUpdated(this.props.users);
 
-    socket.emit('login', {
+    socket.emit(enums.LOGIN, {
       sender: 'chatbot',
       username: username,
       message: username + " has joined the chat"
@@ -46,7 +48,7 @@ module.exports = React.createClass({
     users.splice(index, 1);
     this.props.onUsersUpdated(users);
 
-    socket.emit('logout', {
+    socket.emit(enums.LOGOUT, {
       sender: 'chatbot',
       username: username,
       message: username + " has left the chat"

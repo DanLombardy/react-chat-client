@@ -1,5 +1,6 @@
 module.exports = {
-  LOGIN: "login",
-  MESSAGE: "message",
-  USER_LIST: "update user list"
+  LOGIN: 'login',
+  LOGOUT: 'logout',
+  MESSAGE: 'message',
+  DISCONNECT: 'disconnect'
 };

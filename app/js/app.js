@@ -21,7 +21,7 @@ var Application = React.createClass({
   },
 
   componentDidMount: function() {
-    socket.on('message', function(message) {
+    socket.on(enums.MESSAGE, function(message) {
     	this.addMessage(message);
     }.bind(this));
   },
@@ -36,7 +36,7 @@ var Application = React.createClass({
   },
 
   sendMessage: function(message) {
-		socket.emit('message', message);
+		socket.emit(enums.MESSAGE, message);
 	},
 
   onInputChange: function() {
