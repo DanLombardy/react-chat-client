@@ -2,10 +2,19 @@ var React = require("react");
 
 module.exports = React.createClass({
 	render: function() {
+
+		var onClick = (function (event) {
+			event.preventDefault();
+			this.props.sendMessage(this.refs.input.value);
+			this.refs.input.value = "";
+			return false;
+
+		}).bind(this);
+
 		return (
 			<form onSubmit={this.props.submit}>
-				<input type="text" size="40" placeholder="Type your message here" />
-				<button>Post it!</button>
+				<input ref="input" type="text" size="40" placeholder="Type your message here" />
+				<button onClick = {onClick}>Post it!</button>
 			</form>
 		);
 	}

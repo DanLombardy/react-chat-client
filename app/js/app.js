@@ -1,77 +1,77 @@
-// get a reference to the websocket
 var socket = io();
-
 var React = require('react');
 var ReactDOM = require('react-dom');
-var MessageForm = require(__dirname + '/components/msgForm.js');
+var enums = require("./../../enums");
 
-// set window.React for integration with React Chrome devtools
+var Modal = require('./components/modal');
+var UserList = require('./components/user_list');
+var MessageList = require('./components/message_list');
+
+
 if (typeof window !== 'undefined') {
     window.React = React;
 }
 
-var MessageList = React.createClass({
-	getInitialState: function() {
-		return {
-			// initialize messages array with welcome message
-			messages: [{
-				timeStamp: Date.now(),
-				text: "Welcome to the test chat app!"
-			}]
-		};
-	},
-	componentDidMount: function() {
-		// register event handler for new messages received from server
-		socket.on('messageAdded', this.onMessageAdded);
-	},
-	onMessageAdded: function(message) {
-		// update the array (setState re-renders the component)
-		this.setState({messages: this.state.messages.concat(message)});
-	},
-	postIt: function(e) {
-		// prevent form submission which reloads the page
-		e.preventDefault();
+var Application = React.createClass({
+  getInitialState:function() {
+    return {
+      userName: undefined,
+      messages: [],
+      users: [],
+      modalIsOpen: true
+    }
+  },
 
-		// get the message
-		var input = ReactDOM.findDOMNode(this.refs.theForm).children[0];
-		var message = {
-			timeStamp: Date.now(),
-			text: input.value
-		};
+  openModal: function() {
+    this.setState({modalIsOpen: true});
+  },
 
-		// add it locally for this client
-		this.setState({messages: this.state.messages.concat(message)});
-		/**
-		 * Alternatively you could have the server emit to ALL clients,
-		 * including the one who sent the message. In that case the message
-		 * would go from your client to the server and back before it got added
-		 * to the message list.
-		 */
+  closeModal: function() {
+    this.setState({modalIsOpen: false});
+  },
 
-		// clear the input
-		input.value = '';
+  login: function(userName){
+    this.closeModal();
+    this.setState({userName: userName});
+    socket.emit(enums.LOGIN, userName );
+  },
 
-		// emit to server so other clients can be updated
-		socket.emit('messageAdded', message);
+  componentDidMount: function(){
+    socket.on(enums.USER_LIST, this.onUsersUpdated);
+    socket.on(enums.MESSAGE, this.addMessage);
+  },
+
+  onUsersUpdated: function(users){
+    this.setState({users: users});
+  },
+
+  addMessage: function(message){
+    this.setState({messages: this.state.messages.concat(message)});
+  },
+
+  sendMessage: function(message) {
+		socket.emit(enums.MESSAGE, message);
 	},
-	render: function() {
-		return (
-			<div>
-				<h2>Messages</h2>
-				<ul className="message-list">
-					{this.state.messages.map(function(message) {
-						return(
-							<li key={message.timeStamp}>{message.text}</li>
-						);
-					})}
-				</ul>
-				<MessageForm submit={this.postIt} ref="theForm" />
-			</div>
-		);
-	}
+
+  render: function () {
+    return (
+
+      <div>
+        <h1>Chat App</h1>
+        <div>
+          <UserList users = {this.state.users}  />
+        </div>
+        <div>
+          <MessageList sendMessage = {this.sendMessage} messages = {this.state.messages}/>
+        </div>
+        {this.state.modalIsOpen ? <Modal login = {this.login} userName={this.state.userName}/> : undefined}
+      </div>
+    )
+  }
 });
 
 
 
-// mount to the messages div
-ReactDOM.render(<MessageList />, document.getElementById('messages'));
+
+
+window.application = ReactDOM.render(<Application/>, document.getElementById("root"));
