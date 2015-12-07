@@ -8,7 +8,6 @@ var Modal = require('./components/modal');
 var UserList = require('./components/user_list');
 var MessageList = require('./components/message_list');
 
-
 if (typeof window !== 'undefined') {
     window.React = React;
 }
@@ -50,7 +49,6 @@ var Application = React.createClass({
   addMessage: function(message){
     this.setState({messages: this.state.messages.concat(message)});
     this.setState({showTypingIndicator: false});
-
   },
 
   sendMessage: function(message) {
@@ -63,19 +61,18 @@ var Application = React.createClass({
 
   render: function () {
     return (
-
       <div>
         <h1>Chat App</h1>
         <div>
-          <UserList users = {this.state.users}  />
+          <UserList users={this.state.users}/>
         </div>
         <div>
-          <MessageList sendMessage = {this.sendMessage} messages = {this.state.messages}
-            onInputChange = {this.onInputChange} showTypingIndicator = {this.state.showTypingIndicator}/>
+          <MessageList sendMessage={this.sendMessage} messages={this.state.messages}
+            onInputChange={this.onInputChange} showTypingIndicator={this.state.showTypingIndicator}/>
         </div>
-        {this.state.modalIsOpen ? <Modal login = {this.login} userName={this.state.userName}/> : undefined}
+        {this.state.modalIsOpen ? <Modal login={this.login} userName={this.state.userName}/> : null}
       </div>
-    )
+    );
   }
 });
 

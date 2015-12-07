@@ -2,8 +2,7 @@ var React = require('react');
 var MessageForm = require('./msgForm.js');
 var TypingIndicator = require('./showTyping.js');
 
-
-module.exports= exports = React.createClass({
+module.exports = React.createClass({
 	render: function() {
 		return (
 			<div>
@@ -15,8 +14,8 @@ module.exports= exports = React.createClass({
 						);
 					})}
 				</ul>
-				<MessageForm sendMessage ={this.props.sendMessage} onInputChange = {this.props.onInputChange} ref="theForm" />
-				{this.props.showTypingIndicator ? <TypingIndicator />: null}
+				<MessageForm sendMessage={this.props.sendMessage} onInputChange={this.props.onInputChange} ref="theForm" />
+				{this.props.showTypingIndicator ? <TypingIndicator /> : null}
 			</div>
 		);
 	}
