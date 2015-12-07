@@ -46,16 +46,20 @@
 
 	'use strict';
 
-	// get a reference to the websocket
 	var socket = io();
-
 	var React = __webpack_require__(1);
 	var ReactDOM = __webpack_require__(158);
 	var MessageForm = __webpack_require__(159);
 	var TypingIndicator = __webpack_require__(160);
+	var enums = __webpack_require__(159);
 
-	// set window.React for integration with React Chrome devtools
+	var Modal = __webpack_require__(160);
+	var UserList = __webpack_require__(161);
+	var MessageList = __webpack_require__(162);
+
+
 	if (typeof window !== 'undefined') {
+
 		window.React = React;
 	}
 
@@ -102,9 +106,13 @@
 	   * would go from your client to the server and back before it got added
 	   * to the message list.
 	   */
+	  window.React = React;
+	}
 
-			// clear the input
-			input.value = '';
+
+	var Application = React.createClass({
+	  displayName: 'Application',
+
 
 			// clear the indicator
 			this.setState({ showTypingIndicator: false });
@@ -136,10 +144,72 @@
 				this.state.showTypingIndicator ? React.createElement(TypingIndicator, null) : null
 			);
 		}
+	  getInitialState: function getInitialState() {
+	    return {
+	      userName: undefined,
+	      messages: [],
+	      users: [],
+	      modalIsOpen: true
+	    };
+	  },
+
+	  openModal: function openModal() {
+	    this.setState({ modalIsOpen: true });
+	  },
+
+	  closeModal: function closeModal() {
+	    this.setState({ modalIsOpen: false });
+	  },
+
+	  login: function login(userName) {
+	    this.closeModal();
+	    this.setState({ userName: userName });
+	    socket.emit(enums.LOGIN, userName);
+	  },
+
+	  componentDidMount: function componentDidMount() {
+	    socket.on(enums.USER_LIST, this.onUsersUpdated);
+	    socket.on(enums.MESSAGE, this.addMessage);
+	  },
+
+	  onUsersUpdated: function onUsersUpdated(users) {
+	    this.setState({ users: users });
+	  },
+
+	  addMessage: function addMessage(message) {
+	    this.setState({ messages: this.state.messages.concat(message) });
+	  },
+
+	  sendMessage: function sendMessage(message) {
+	    socket.emit(enums.MESSAGE, message);
+	  },
+
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      null,
+	      React.createElement(
+	        'h1',
+	        null,
+	        'Chat App'
+	      ),
+	      React.createElement(
+	        'div',
+	        null,
+	        React.createElement(UserList, { users: this.state.users })
+	      ),
+	      React.createElement(
+	        'div',
+	        null,
+	        React.createElement(MessageList, { sendMessage: this.sendMessage, messages: this.state.messages })
+	      ),
+	      this.state.modalIsOpen ? React.createElement(Modal, { login: this.login, userName: this.state.userName }) : undefined
+	    );
+	  }
+
 	});
 
-	// mount to the messages div
-	ReactDOM.render(React.createElement(MessageList, null), document.getElementById('messages'));
+	window.application = ReactDOM.render(React.createElement(Application, null), document.getElementById("root"));
 
 /***/ },
 /* 1 */
@@ -14695,7 +14765,7 @@
 	 *
 	 * @providesModule shallowEqual
 	 * @typechecks
-	 * 
+	 *
 	 */
 
 	'use strict';
@@ -19730,6 +19800,157 @@
 
 /***/ },
 /* 159 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	module.exports = {
+	  LOGIN: "login",
+	  MESSAGE: "message",
+	  USER_LIST: "update user list"
+	};
+
+/***/ },
+/* 160 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var React = __webpack_require__(1);
+
+	module.exports = exports = React.createClass({
+	  displayName: "exports",
+
+	  render: function render() {
+	    return React.createElement(
+	      "div",
+	      { style: this.styles.outterContainer },
+	      React.createElement(
+	        "div",
+	        { style: this.styles.innerContainer },
+	        React.createElement(
+	          "h2",
+	          null,
+	          "Welcome to Generic Chat App"
+	        ),
+	        React.createElement(
+	          "p",
+	          null,
+	          "Please fill in a username"
+	        ),
+	        React.createElement(
+	          "form",
+	          null,
+	          React.createElement("input", { ref: "input", type: "text", size: "100", placeholder: "Please enter name" }),
+	          React.createElement(
+	            "button",
+	            { onClick: (function (event) {
+	                event.preventDefault();this.props.login(this.refs.input.value);return false;
+	              }).bind(this) },
+	            "Submit"
+	          )
+	        )
+	      )
+	    );
+	  },
+
+	  styles: {
+	    outterContainer: {
+	      position: "absolute",
+	      top: 0,
+	      left: 0,
+	      width: "100%",
+	      height: "100%",
+	      backgroundColor: "rgba(0,0,0,0.25)"
+	    },
+
+	    innerContainer: {
+	      width: 400,
+	      height: 400,
+	      margin: "200px auto 0",
+	      backgroundColor: "white",
+	      padding: 20,
+	      borderRadius: 10
+	    }
+	  }
+	});
+
+/***/ },
+/* 161 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var React = __webpack_require__(1);
+
+	module.exports = exports = React.createClass({
+	  displayName: "exports",
+
+	  render: function render() {
+	    return React.createElement(
+	      "div",
+	      null,
+	      React.createElement(
+	        "h2",
+	        null,
+	        "Users"
+	      ),
+	      React.createElement(
+	        "ul",
+	        { className: "user-list" },
+	        this.props.users.map(function (user, index) {
+	          return React.createElement(
+	            "li",
+	            { key: index },
+	            user
+	          );
+	        })
+	      )
+	    );
+	  }
+	});
+
+/***/ },
+/* 162 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	var React = __webpack_require__(1);
+	var MessageForm = __webpack_require__(163);
+
+	module.exports = exports = React.createClass({
+		displayName: 'exports',
+
+		render: function render() {
+			return React.createElement(
+				'div',
+				null,
+				React.createElement(
+					'h2',
+					null,
+					'Messages'
+				),
+				React.createElement(
+					'ul',
+					{ className: 'message-list' },
+					this.props.messages.map(function (message, index) {
+						return React.createElement(
+							'li',
+							{ key: index },
+							message.username,
+							': ',
+							message.message
+						);
+					})
+				),
+				React.createElement(MessageForm, { sendMessage: this.props.sendMessage, ref: 'theForm' })
+			);
+		}
+	});
+
+/***/ },
+/* 163 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -19743,13 +19964,24 @@
 			this.props.onInputChange();
 		},
 		render: function render() {
+
+			var onClick = (function (event) {
+				event.preventDefault();
+				this.props.sendMessage(this.refs.input.value);
+				this.refs.input.value = "";
+				return false;
+			}).bind(this);
+
 			return React.createElement(
 				"form",
 				{ onSubmit: this.props.submit },
+
 				React.createElement("input", { type: "text", size: "40", placeholder: "Type your message here", onChange: this.handleChange }),
+				React.createElement("input", { ref: "input", type: "text", size: "40", placeholder: "Type your message here" }),
+
 				React.createElement(
 					"button",
-					null,
+					{ onClick: onClick },
 					"Post it!"
 				)
 			);
