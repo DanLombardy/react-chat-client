@@ -1,6 +1,6 @@
 var React = require('react');
 var MessageForm = require('./msgForm.js');
-var TypingIndicator = require('./components/showTyping.js');
+var TypingIndicator = require('./showTyping.js');
 
 
 module.exports= exports = React.createClass({

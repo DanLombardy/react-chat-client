@@ -10,7 +10,7 @@ module.exports = exports = React.createClass({
           <p>Please fill in a username</p>
 
           <form>
-            <input ref="input" type="text" size="100" placeholder="Please enter name" />
+            <input ref="input" type="text" size="50" placeholder="Please enter name" />
             <button onClick={(function (event) { event.preventDefault(); this.props.login(this.refs.input.value); return false; }).bind(this)}>Submit</button>
           </form>
         </div>
@@ -31,7 +31,7 @@ module.exports = exports = React.createClass({
     innerContainer: {
       width: 400,
       height: 400,
-      margin: "200px auto 0",
+      margin: "50px auto 0",
       backgroundColor: "white",
       padding: 20,
       borderRadius: 10

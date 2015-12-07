@@ -13,23 +13,6 @@ if (typeof window !== 'undefined') {
     window.React = React;
 }
 
-	render: function() {
-		return (
-			<div>
-				<h2>Messages</h2>
-				<ul className="message-list">
-					{this.state.messages.map(function(message) {
-						return(
-							<li key={message.timeStamp}>{message.text}</li>
-						);
-					})}
-				</ul>
-				<MessageForm submit={this.postIt} onInputChange={this.onInputChange} ref="theForm" />
-				{this.state.showTypingIndicator ? <TypingIndicator/> : null}
-			</div>
-		);
-	}
-
 var Application = React.createClass({
   getInitialState:function() {
     return {
@@ -95,9 +78,5 @@ var Application = React.createClass({
     )
   }
 });
-
-
-
-
 
 window.application = ReactDOM.render(<Application/>, document.getElementById("root"));
