@@ -4,55 +4,39 @@ var ReactDOM = require('react-dom');
 
 var enums = require("./../../enums");
 
-var Modal = require('./components/modal');
-var UserList = require('./components/user_list');
-var MessageList = require('./components/message_list');
+var Connections = require('./components/connections');
+var MessageList = require('./components/messageList');
 
 if (typeof window !== 'undefined') {
     window.React = React;
 }
 
 var Application = React.createClass({
-  getInitialState:function() {
+  getInitialState: function() {
     return {
-      userName: undefined,
       messages: [],
       users: [],
-      modalIsOpen: true,
       showTypingIndicator: false
     }
   },
 
-  openModal: function() {
-    this.setState({modalIsOpen: true});
+  componentDidMount: function() {
+    socket.on('message', function(message) {
+    	this.addMessage(message);
+    }.bind(this));
   },
 
-  closeModal: function() {
-    this.setState({modalIsOpen: false});
-  },
-
-  login: function(userName){
-    this.closeModal();
-    this.setState({userName: userName});
-    socket.emit(enums.LOGIN, userName );
-  },
-
-  componentDidMount: function(){
-    socket.on(enums.USER_LIST, this.onUsersUpdated);
-    socket.on(enums.MESSAGE, this.addMessage);
-  },
-
-  onUsersUpdated: function(users){
+  onUsersUpdated: function(users) {
     this.setState({users: users});
   },
 
-  addMessage: function(message){
+  addMessage: function(message) {
     this.setState({messages: this.state.messages.concat(message)});
     this.setState({showTypingIndicator: false});
   },
 
   sendMessage: function(message) {
-		socket.emit(enums.MESSAGE, message);
+		socket.emit('message', message);
 	},
 
   onInputChange: function() {
@@ -64,13 +48,12 @@ var Application = React.createClass({
       <div>
         <h1>Chat App</h1>
         <div>
-          <UserList users={this.state.users}/>
+          <Connections users={this.state.users} onUsersUpdated={this.onUsersUpdated}/>
         </div>
         <div>
           <MessageList sendMessage={this.sendMessage} messages={this.state.messages}
             onInputChange={this.onInputChange} showTypingIndicator={this.state.showTypingIndicator}/>
         </div>
-        {this.state.modalIsOpen ? <Modal login={this.login} userName={this.state.userName}/> : null}
       </div>
     );
   }

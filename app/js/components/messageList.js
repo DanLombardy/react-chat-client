@@ -10,7 +10,7 @@ module.exports = React.createClass({
 				<ul className="message-list">
 					{this.props.messages.map(function(message, index) {
 						return(
-							<li key={index}>{message.username}: {message.message}</li>
+							<li key={index}>{message.sender}: {message.message}</li>
 						);
 					})}
 				</ul>

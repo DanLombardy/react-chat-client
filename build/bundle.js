@@ -52,9 +52,8 @@
 
 	var enums = __webpack_require__(159);
 
-	var Modal = __webpack_require__(160);
-	var UserList = __webpack_require__(161);
-	var MessageList = __webpack_require__(162);
+	var Connections = __webpack_require__(160);
+	var MessageList = __webpack_require__(163);
 
 	if (typeof window !== 'undefined') {
 	  window.React = React;
@@ -65,31 +64,16 @@
 
 	  getInitialState: function getInitialState() {
 	    return {
-	      userName: undefined,
 	      messages: [],
 	      users: [],
-	      modalIsOpen: true,
 	      showTypingIndicator: false
 	    };
 	  },
 
-	  openModal: function openModal() {
-	    this.setState({ modalIsOpen: true });
-	  },
-
-	  closeModal: function closeModal() {
-	    this.setState({ modalIsOpen: false });
-	  },
-
-	  login: function login(userName) {
-	    this.closeModal();
-	    this.setState({ userName: userName });
-	    socket.emit(enums.LOGIN, userName);
-	  },
-
 	  componentDidMount: function componentDidMount() {
-	    socket.on(enums.USER_LIST, this.onUsersUpdated);
-	    socket.on(enums.MESSAGE, this.addMessage);
+	    socket.on('message', (function (message) {
+	      this.addMessage(message);
+	    }).bind(this));
 	  },
 
 	  onUsersUpdated: function onUsersUpdated(users) {
@@ -102,7 +86,7 @@
 	  },
 
 	  sendMessage: function sendMessage(message) {
-	    socket.emit(enums.MESSAGE, message);
+	    socket.emit('message', message);
 	  },
 
 	  onInputChange: function onInputChange() {
@@ -121,15 +105,14 @@
 	      React.createElement(
 	        'div',
 	        null,
-	        React.createElement(UserList, { users: this.state.users })
+	        React.createElement(Connections, { users: this.state.users, onUsersUpdated: this.onUsersUpdated })
 	      ),
 	      React.createElement(
 	        'div',
 	        null,
 	        React.createElement(MessageList, { sendMessage: this.sendMessage, messages: this.state.messages,
 	          onInputChange: this.onInputChange, showTypingIndicator: this.state.showTypingIndicator })
-	      ),
-	      this.state.modalIsOpen ? React.createElement(Modal, { login: this.login, userName: this.state.userName }) : null
+	      )
 	    );
 	  }
 	});
@@ -19739,6 +19722,117 @@
 /* 160 */
 /***/ function(module, exports, __webpack_require__) {
 
+	'use strict';
+
+	var socket = io();
+	var React = __webpack_require__(1);
+	var ReactDOM = __webpack_require__(158);
+
+	var UserList = __webpack_require__(161);
+	var Modal = __webpack_require__(162);
+
+	module.exports = React.createClass({
+	  displayName: 'exports',
+
+	  getInitialState: function getInitialState() {
+	    return {
+	      userName: undefined,
+	      modalIsOpen: true
+	    };
+	  },
+
+	  componentDidMount: function componentDidMount() {
+	    socket.on('disconnect', (function (username) {
+	      this.removeUser(username);
+	    }).bind(this));
+	  },
+
+	  openModal: function openModal() {
+	    this.setState({ modalIsOpen: true });
+	  },
+
+	  closeModal: function closeModal() {
+	    this.setState({ modalIsOpen: false });
+	  },
+
+	  addUser: function addUser(username) {
+	    this.closeModal();
+	    this.setState({ userName: username });
+
+	    this.props.users.push(username);
+	    this.props.onUsersUpdated(this.props.users);
+
+	    socket.emit('login', {
+	      sender: 'chatbot',
+	      username: username,
+	      message: username + " has joined the chat"
+	    });
+	  },
+
+	  removeUser: function removeUser(username) {
+	    var users = this.props.users;
+	    var index = users.indexOf(username);
+	    if (index === -1) return;
+
+	    users.splice(index, 1);
+	    this.props.onUsersUpdated(users);
+
+	    socket.emit('logout', {
+	      sender: 'chatbot',
+	      username: username,
+	      message: username + " has left the chat"
+	    });
+	  },
+
+	  render: function render() {
+	    return React.createElement(
+	      'div',
+	      null,
+	      React.createElement(UserList, { users: this.props.users }),
+	      this.state.modalIsOpen ? React.createElement(Modal, { addUser: this.addUser }) : null
+	    );
+	  }
+	});
+
+/***/ },
+/* 161 */
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+
+	var React = __webpack_require__(1);
+
+	module.exports = React.createClass({
+	  displayName: "exports",
+
+	  render: function render() {
+	    return React.createElement(
+	      "div",
+	      null,
+	      React.createElement(
+	        "h2",
+	        null,
+	        "Users"
+	      ),
+	      React.createElement(
+	        "ul",
+	        { className: "user-list" },
+	        this.props.users.map(function (user, index) {
+	          return React.createElement(
+	            "li",
+	            { key: index },
+	            user
+	          );
+	        })
+	      )
+	    );
+	  }
+	});
+
+/***/ },
+/* 162 */
+/***/ function(module, exports, __webpack_require__) {
+
 	"use strict";
 
 	var React = __webpack_require__(1);
@@ -19748,7 +19842,7 @@
 
 	  handleClick: function handleClick(event) {
 	    event.preventDefault();
-	    this.props.login(this.refs.input.value);
+	    this.props.addUser(this.refs.input.value);
 	    return false;
 	  },
 
@@ -19805,51 +19899,16 @@
 	});
 
 /***/ },
-/* 161 */
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-
-	var React = __webpack_require__(1);
-
-	module.exports = React.createClass({
-	  displayName: "exports",
-
-	  render: function render() {
-	    return React.createElement(
-	      "div",
-	      null,
-	      React.createElement(
-	        "h2",
-	        null,
-	        "Users"
-	      ),
-	      React.createElement(
-	        "ul",
-	        { className: "user-list" },
-	        this.props.users.map(function (user, index) {
-	          return React.createElement(
-	            "li",
-	            { key: index },
-	            user
-	          );
-	        })
-	      )
-	    );
-	  }
-	});
-
-/***/ },
-/* 162 */
+/* 163 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	var React = __webpack_require__(1);
-	var MessageForm = __webpack_require__(163);
-	var TypingIndicator = __webpack_require__(164);
+	var MessageForm = __webpack_require__(164);
+	var TypingIndicator = __webpack_require__(165);
 
-	module.exports = exports = React.createClass({
+	module.exports = React.createClass({
 		displayName: 'exports',
 
 		render: function render() {
@@ -19868,7 +19927,7 @@
 						return React.createElement(
 							'li',
 							{ key: index },
-							message.username,
+							message.sender,
 							': ',
 							message.message
 						);
@@ -19881,7 +19940,7 @@
 	});
 
 /***/ },
-/* 163 */
+/* 164 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -19917,7 +19976,7 @@
 	});
 
 /***/ },
-/* 164 */
+/* 165 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';

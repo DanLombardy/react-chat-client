@@ -3,7 +3,7 @@ var React = require('react');
 module.exports = React.createClass({
   handleClick: function(event) {
     event.preventDefault();
-    this.props.login(this.refs.input.value);
+    this.props.addUser(this.refs.input.value);
     return false;
   },
 

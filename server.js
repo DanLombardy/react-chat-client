@@ -7,50 +7,27 @@ var enums = require("./enums");
 app.use('/', express.static(__dirname + '/build/'));
 app.use('/node_modules', express.static(__dirname + '/node_modules'));
 
-var users = [];
-
-function addUser(username){
-  users.push(username);
-  io.emit(enums.USER_LIST, users);
-  io.emit(enums.MESSAGE, {
-    username: 'chatbot',
-    message: username + " has joined the chat"
-  });
-};
-
-function removeUser(username){
-  var index = users.indexOf(username);
-  if(index == -1){
-    return;
-  }
-
-  users.splice(index, 1);
-  io.emit(enums.USER_LIST, users);
-  io.emit(enums.MESSAGE, {
-    username: 'chatbot',
-    message: username + " has left the chat"
-  });
-};
-
 io.on('connection', function(socket) {
   var socketUsername;
 
-  socket.on(enums.MESSAGE, function(data){
-    io.emit(enums.MESSAGE, {
-      username: socketUsername,
-      message: data
+  socket.on('login', function(data) {
+    socketUsername = data.username;
+    io.emit('message', data);
+  });
+
+  socket.on('message', function(message) {
+    io.emit('message', {
+      sender: socketUsername,
+      message: message
     });
   });
 
-  socket.on(enums.LOGIN, function(username){
-    socketUsername = username;
-    addUser(socketUsername);
+  socket.on('disconnect', function() {
+    io.emit('disconnect', socketUsername);
   });
 
-  socket.on('disconnect', function() {
-    removeUser(socketUsername);
-    console.log('user disconnected');
-
+  socket.on('logout', function(data) {
+    io.emit('message', data);
   });
 
 });
