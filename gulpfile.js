@@ -93,4 +93,4 @@ gulp.task('watch', function() {
   gulp.watch([paths.frontend.js, paths.frontend.html], ['jshint:frontend', 'build']);
 });
 
-gulp.task('default', ['jshint:frontend', 'build']);
+gulp.task('default', ['build']);
