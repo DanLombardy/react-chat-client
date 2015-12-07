@@ -3,7 +3,8 @@ var socket = io();
 
 var React = require('react');
 var ReactDOM = require('react-dom');
-var MessageForm = require(__dirname + '/components/msgForm.js');
+var MessageForm = require('./components/msgForm.js');
+var TypingIndicator = require('./components/showTyping.js');
 
 // set window.React for integration with React Chrome devtools
 if (typeof window !== 'undefined') {
@@ -17,7 +18,8 @@ var MessageList = React.createClass({
 			messages: [{
 				timeStamp: Date.now(),
 				text: "Welcome to the test chat app!"
-			}]
+			}],
+			showTypingIndicator: false
 		};
 	},
 	componentDidMount: function() {
@@ -27,6 +29,9 @@ var MessageList = React.createClass({
 	onMessageAdded: function(message) {
 		// update the array (setState re-renders the component)
 		this.setState({messages: this.state.messages.concat(message)});
+	},
+	onInputChange: function() {
+		this.setState({showTypingIndicator: true});
 	},
 	postIt: function(e) {
 		// prevent form submission which reloads the page
@@ -51,6 +56,9 @@ var MessageList = React.createClass({
 		// clear the input
 		input.value = '';
 
+		// clear the indicator
+		this.setState({showTypingIndicator: false});
+
 		// emit to server so other clients can be updated
 		socket.emit('messageAdded', message);
 	},
@@ -65,7 +73,8 @@ var MessageList = React.createClass({
 						);
 					})}
 				</ul>
-				<MessageForm submit={this.postIt} ref="theForm" />
+				<MessageForm submit={this.postIt} onInputChange={this.onInputChange} ref="theForm" />
+				{this.state.showTypingIndicator ? <TypingIndicator/> : null}
 			</div>
 		);
 	}
