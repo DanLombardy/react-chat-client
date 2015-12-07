@@ -1,6 +1,11 @@
 var React = require('react');
 
-module.exports = exports = React.createClass({
+module.exports = React.createClass({
+  handleClick: function(event) {
+    event.preventDefault();
+    this.props.addUser(this.refs.input.value);
+    return false;
+  },
 
   render: function() {
     return (
@@ -11,7 +16,7 @@ module.exports = exports = React.createClass({
 
           <form>
             <input ref="input" type="text" size="50" placeholder="Please enter name" />
-            <button onClick={(function (event) { event.preventDefault(); this.props.login(this.refs.input.value); return false; }).bind(this)}>Submit</button>
+            <button onClick={this.handleClick}>Submit</button>
           </form>
         </div>
       </div>

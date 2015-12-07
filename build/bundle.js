@@ -49,127 +49,31 @@
 	var socket = io();
 	var React = __webpack_require__(1);
 	var ReactDOM = __webpack_require__(158);
-	var MessageForm = __webpack_require__(159);
-	var TypingIndicator = __webpack_require__(160);
+
 	var enums = __webpack_require__(159);
 
-	var Modal = __webpack_require__(160);
-	var UserList = __webpack_require__(161);
-	var MessageList = __webpack_require__(162);
-
+	var Connections = __webpack_require__(160);
+	var MessageList = __webpack_require__(163);
 
 	if (typeof window !== 'undefined') {
-
-		window.React = React;
-	}
-
-	var MessageList = React.createClass({
-		displayName: 'MessageList',
-
-		getInitialState: function getInitialState() {
-			return {
-				// initialize messages array with welcome message
-				messages: [{
-					timeStamp: Date.now(),
-					text: "Welcome to the test chat app!"
-				}],
-				showTypingIndicator: false
-			};
-		},
-		componentDidMount: function componentDidMount() {
-			// register event handler for new messages received from server
-			socket.on('messageAdded', this.onMessageAdded);
-		},
-		onMessageAdded: function onMessageAdded(message) {
-			// update the array (setState re-renders the component)
-			this.setState({ messages: this.state.messages.concat(message) });
-		},
-		onInputChange: function onInputChange() {
-			this.setState({ showTypingIndicator: true });
-		},
-		postIt: function postIt(e) {
-			// prevent form submission which reloads the page
-			e.preventDefault();
-
-			// get the message
-			var input = ReactDOM.findDOMNode(this.refs.theForm).children[0];
-			var message = {
-				timeStamp: Date.now(),
-				text: input.value
-			};
-
-			// add it locally for this client
-			this.setState({ messages: this.state.messages.concat(message) });
-			/**
-	   * Alternatively you could have the server emit to ALL clients,
-	   * including the one who sent the message. In that case the message
-	   * would go from your client to the server and back before it got added
-	   * to the message list.
-	   */
 	  window.React = React;
 	}
-
 
 	var Application = React.createClass({
 	  displayName: 'Application',
 
-
-			// clear the indicator
-			this.setState({ showTypingIndicator: false });
-
-			// emit to server so other clients can be updated
-			socket.emit('messageAdded', message);
-		},
-		render: function render() {
-			return React.createElement(
-				'div',
-				null,
-				React.createElement(
-					'h2',
-					null,
-					'Messages'
-				),
-				React.createElement(
-					'ul',
-					{ className: 'message-list' },
-					this.state.messages.map(function (message) {
-						return React.createElement(
-							'li',
-							{ key: message.timeStamp },
-							message.text
-						);
-					})
-				),
-				React.createElement(MessageForm, { submit: this.postIt, onInputChange: this.onInputChange, ref: 'theForm' }),
-				this.state.showTypingIndicator ? React.createElement(TypingIndicator, null) : null
-			);
-		}
 	  getInitialState: function getInitialState() {
 	    return {
-	      userName: undefined,
 	      messages: [],
 	      users: [],
-	      modalIsOpen: true
+	      showTypingIndicator: false
 	    };
 	  },
 
-	  openModal: function openModal() {
-	    this.setState({ modalIsOpen: true });
-	  },
-
-	  closeModal: function closeModal() {
-	    this.setState({ modalIsOpen: false });
-	  },
-
-	  login: function login(userName) {
-	    this.closeModal();
-	    this.setState({ userName: userName });
-	    socket.emit(enums.LOGIN, userName);
-	  },
-
 	  componentDidMount: function componentDidMount() {
-	    socket.on(enums.USER_LIST, this.onUsersUpdated);
-	    socket.on(enums.MESSAGE, this.addMessage);
+	    socket.on('message', (function (message) {
+	      this.addMessage(message);
+	    }).bind(this));
 	  },
 
 	  onUsersUpdated: function onUsersUpdated(users) {
@@ -178,10 +82,15 @@
 
 	  addMessage: function addMessage(message) {
 	    this.setState({ messages: this.state.messages.concat(message) });
+	    this.setState({ showTypingIndicator: false });
 	  },
 
 	  sendMessage: function sendMessage(message) {
-	    socket.emit(enums.MESSAGE, message);
+	    socket.emit('message', message);
+	  },
+
+	  onInputChange: function onInputChange() {
+	    this.setState({ showTypingIndicator: true });
 	  },
 
 	  render: function render() {
@@ -196,17 +105,16 @@
 	      React.createElement(
 	        'div',
 	        null,
-	        React.createElement(UserList, { users: this.state.users })
+	        React.createElement(Connections, { users: this.state.users, onUsersUpdated: this.onUsersUpdated })
 	      ),
 	      React.createElement(
 	        'div',
 	        null,
-	        React.createElement(MessageList, { sendMessage: this.sendMessage, messages: this.state.messages })
-	      ),
-	      this.state.modalIsOpen ? React.createElement(Modal, { login: this.login, userName: this.state.userName }) : undefined
+	        React.createElement(MessageList, { sendMessage: this.sendMessage, messages: this.state.messages,
+	          onInputChange: this.onInputChange, showTypingIndicator: this.state.showTypingIndicator })
+	      )
 	    );
 	  }
-
 	});
 
 	window.application = ReactDOM.render(React.createElement(Application, null), document.getElementById("root"));
@@ -14765,7 +14673,7 @@
 	 *
 	 * @providesModule shallowEqual
 	 * @typechecks
-	 *
+	 * 
 	 */
 
 	'use strict';
@@ -19814,64 +19722,75 @@
 /* 160 */
 /***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
+	var socket = io();
 	var React = __webpack_require__(1);
+	var ReactDOM = __webpack_require__(158);
 
-	module.exports = exports = React.createClass({
-	  displayName: "exports",
+	var UserList = __webpack_require__(161);
+	var Modal = __webpack_require__(162);
+
+	module.exports = React.createClass({
+	  displayName: 'exports',
+
+	  getInitialState: function getInitialState() {
+	    return {
+	      userName: undefined,
+	      modalIsOpen: true
+	    };
+	  },
+
+	  componentDidMount: function componentDidMount() {
+	    socket.on('disconnect', (function (username) {
+	      this.removeUser(username);
+	    }).bind(this));
+	  },
+
+	  openModal: function openModal() {
+	    this.setState({ modalIsOpen: true });
+	  },
+
+	  closeModal: function closeModal() {
+	    this.setState({ modalIsOpen: false });
+	  },
+
+	  addUser: function addUser(username) {
+	    this.closeModal();
+	    this.setState({ userName: username });
+
+	    this.props.users.push(username);
+	    this.props.onUsersUpdated(this.props.users);
+
+	    socket.emit('login', {
+	      sender: 'chatbot',
+	      username: username,
+	      message: username + " has joined the chat"
+	    });
+	  },
+
+	  removeUser: function removeUser(username) {
+	    var users = this.props.users;
+	    var index = users.indexOf(username);
+	    if (index === -1) return;
+
+	    users.splice(index, 1);
+	    this.props.onUsersUpdated(users);
+
+	    socket.emit('logout', {
+	      sender: 'chatbot',
+	      username: username,
+	      message: username + " has left the chat"
+	    });
+	  },
 
 	  render: function render() {
 	    return React.createElement(
-	      "div",
-	      { style: this.styles.outterContainer },
-	      React.createElement(
-	        "div",
-	        { style: this.styles.innerContainer },
-	        React.createElement(
-	          "h2",
-	          null,
-	          "Welcome to Generic Chat App"
-	        ),
-	        React.createElement(
-	          "p",
-	          null,
-	          "Please fill in a username"
-	        ),
-	        React.createElement(
-	          "form",
-	          null,
-	          React.createElement("input", { ref: "input", type: "text", size: "100", placeholder: "Please enter name" }),
-	          React.createElement(
-	            "button",
-	            { onClick: (function (event) {
-	                event.preventDefault();this.props.login(this.refs.input.value);return false;
-	              }).bind(this) },
-	            "Submit"
-	          )
-	        )
-	      )
+	      'div',
+	      null,
+	      React.createElement(UserList, { users: this.props.users }),
+	      this.state.modalIsOpen ? React.createElement(Modal, { addUser: this.addUser }) : null
 	    );
-	  },
-
-	  styles: {
-	    outterContainer: {
-	      position: "absolute",
-	      top: 0,
-	      left: 0,
-	      width: "100%",
-	      height: "100%",
-	      backgroundColor: "rgba(0,0,0,0.25)"
-	    },
-
-	    innerContainer: {
-	      width: 400,
-	      height: 400,
-	      margin: "200px auto 0",
-	      backgroundColor: "white",
-	      padding: 20,
-	      borderRadius: 10
-	    }
 	  }
 	});
 
@@ -19883,7 +19802,7 @@
 
 	var React = __webpack_require__(1);
 
-	module.exports = exports = React.createClass({
+	module.exports = React.createClass({
 	  displayName: "exports",
 
 	  render: function render() {
@@ -19914,12 +19833,82 @@
 /* 162 */
 /***/ function(module, exports, __webpack_require__) {
 
+	"use strict";
+
+	var React = __webpack_require__(1);
+
+	module.exports = React.createClass({
+	  displayName: "exports",
+
+	  handleClick: function handleClick(event) {
+	    event.preventDefault();
+	    this.props.addUser(this.refs.input.value);
+	    return false;
+	  },
+
+	  render: function render() {
+	    return React.createElement(
+	      "div",
+	      { style: this.styles.outterContainer },
+	      React.createElement(
+	        "div",
+	        { style: this.styles.innerContainer },
+	        React.createElement(
+	          "h2",
+	          null,
+	          "Welcome to Generic Chat App"
+	        ),
+	        React.createElement(
+	          "p",
+	          null,
+	          "Please fill in a username"
+	        ),
+	        React.createElement(
+	          "form",
+	          null,
+	          React.createElement("input", { ref: "input", type: "text", size: "50", placeholder: "Please enter name" }),
+	          React.createElement(
+	            "button",
+	            { onClick: this.handleClick },
+	            "Submit"
+	          )
+	        )
+	      )
+	    );
+	  },
+
+	  styles: {
+	    outterContainer: {
+	      position: "absolute",
+	      top: 0,
+	      left: 0,
+	      width: "100%",
+	      height: "100%",
+	      backgroundColor: "rgba(0,0,0,0.25)"
+	    },
+
+	    innerContainer: {
+	      width: 400,
+	      height: 400,
+	      margin: "50px auto 0",
+	      backgroundColor: "white",
+	      padding: 20,
+	      borderRadius: 10
+	    }
+	  }
+	});
+
+/***/ },
+/* 163 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 
 	var React = __webpack_require__(1);
-	var MessageForm = __webpack_require__(163);
+	var MessageForm = __webpack_require__(164);
+	var TypingIndicator = __webpack_require__(165);
 
-	module.exports = exports = React.createClass({
+	module.exports = React.createClass({
 		displayName: 'exports',
 
 		render: function render() {
@@ -19938,19 +19927,20 @@
 						return React.createElement(
 							'li',
 							{ key: index },
-							message.username,
+							message.sender,
 							': ',
 							message.message
 						);
 					})
 				),
-				React.createElement(MessageForm, { sendMessage: this.props.sendMessage, ref: 'theForm' })
+				React.createElement(MessageForm, { sendMessage: this.props.sendMessage, onInputChange: this.props.onInputChange, ref: 'theForm' }),
+				this.props.showTypingIndicator ? React.createElement(TypingIndicator, null) : null
 			);
 		}
 	});
 
 /***/ },
-/* 163 */
+/* 164 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -19963,25 +19953,22 @@
 		handleChange: function handleChange() {
 			this.props.onInputChange();
 		},
+
+		handleClick: function handleClick(event) {
+			event.preventDefault();
+			this.props.sendMessage(this.refs.input.value);
+			this.refs.input.value = "";
+			return false;
+		},
+
 		render: function render() {
-
-			var onClick = (function (event) {
-				event.preventDefault();
-				this.props.sendMessage(this.refs.input.value);
-				this.refs.input.value = "";
-				return false;
-			}).bind(this);
-
 			return React.createElement(
 				"form",
 				{ onSubmit: this.props.submit },
-
-				React.createElement("input", { type: "text", size: "40", placeholder: "Type your message here", onChange: this.handleChange }),
-				React.createElement("input", { ref: "input", type: "text", size: "40", placeholder: "Type your message here" }),
-
+				React.createElement("input", { ref: "input", type: "text", size: "40", placeholder: "Type your message here", onChange: this.handleChange }),
 				React.createElement(
 					"button",
-					{ onClick: onClick },
+					{ onClick: this.handleClick },
 					"Post it!"
 				)
 			);
@@ -19989,7 +19976,7 @@
 	});
 
 /***/ },
-/* 160 */
+/* 165 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
